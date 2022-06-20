@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--- 
+
+			bootstrap css is auto injected by the parent frame
+
+			<link id="cssChanges" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"> 
+
+		---->
+		<meta charset="utf-8" />
+		<title>Import for Etherscan</title>
+	</head>
+	<body>
+
+		<div class="container">
+
+			<h6 class="mb-3 ml-1 mt-2">
+				Import a Contract
+			</h6>
+
+			<div class="card mb-3">
+				<div class="card-header">
+					<ul class="nav nav-pills card-header-pills nav-fill">
+						<li class="nav-item">
+							<a class="nav-link bg-secondary active btn-sm" href="#" onclick="event.preventDefault(); ImportContractUI.import.setActive(0)" id="importContractImportTab">
+								Import
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link btn-sm" onclick="event.preventDefault(); ImportContractUI.import.setActive(1)" href="#" id="importContractSettingsTab">
+								Settings
+							</a>
+						</li>
+					</ul>
+				</div>
+				<div class="card-body" id="importContractCardBodyContent">
+
+				</div>
+			</div>
+
+			<span id="injectAfterFirstRequest"></span>
+	
+			<div class="accordion" id="accordionExample">
+
+			</div>
+
+		</div>
+		
+		<script src="./js/remix/plugin/plugin_iframe.js"></script>
+
+		<script src="./js/EtherscanContractImportPlugin/ContractRequest.js"></script>
+		<script src="./js/EtherscanContractImportPlugin/EtherscanRequestsWorker.js"></script>
+		<script src="./js/EtherscanContractImportPlugin/HTMLElement.js"></script>
+		<script src="./js/EtherscanContractImportPlugin/ImportContractUI.js"></script>
+		<script src="./js/EtherscanContractImportPlugin/ImportEtherscanContractPlugin.js"></script>
+		<script src="./js/EtherscanContractImportPlugin/Utility.js"></script>
+
+		<script>
+			
+			// the import tab is added to the page with javascript
+			window.addEventListener('load', function () {
+
+				ImportContractUI.import.setActive(0);
+
+			});
+
+			// otherwise, i would have to write stuff to change the default page when 
+			// not being loaded in a remix client.
+			if(!inIframe()) {
+
+				window.location.replace("https://remix.ethereum.org");
+
+			}
+
+			let client = plugin_iframe.createClient();
+
+			client.methods = ["loadContract"];
+
+			// it's working!
+			//
+			// http://localhost/remix-test/remix-live-gh-pages/?#activate=etherscan-import&call=etherscan-import//loadContract//0x66017d22b0f8556afdd19fc67041899eb65a21bb//2
+			client.loadContract = function(addressList, networkID) {
+
+				ImportContractUI.import.setActive(0);
+				let list = document.getElementById("importContractSelectNetwork");
+
+				if(networkID != null) {
+
+					if(networkID <= ContractRequest.NETWORKS.length && networkID > 0) {
+
+						list.selectedIndex = networkID - 1;
+
+					} else {
+
+						list.selectedIndex = 0;
+
+					}
+
+				}
+
+				let addressInput = document.getElementById("importContractAddress");
+
+				addressInput.value = addressList;
+
+				ImportContractUI.addNewRequest();
+
+			}
+
+
+			// this is the plugin that the UI uses to make requests. i just attached it to the ui as the ui is acting
+			// like the window or document of the page.
+			// 
+			//(remixClient, defaultNetwork, defaultAPIKey, defaultStorageLocation, defaultRetryAttempts, waitBetweenRequests, workerUICallback
+			ImportContractUI.plugin = new ImportEtherscanContractPlugin(client, "", "/etherscan/contracts", 1, 5000);
+																	
+		</script>
+
+
+		<script src="./js/jquery/jquery-3.3.1.slim.min.js"></script>
+		<script src="./js/npm/popper.js@1.14.3/dist/umd/popper.min.js"></script>
+		<script src="./js/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js"></script>
+
+	</body>
+</html>
